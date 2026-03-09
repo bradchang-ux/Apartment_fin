@@ -1,0 +1,29 @@
+# OS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+backend/venv/
+backend/uploads/
+backend/finance.db
+backend/backend.log
+
+# Node
+frontend/node_modules/
+frontend/dist/
+frontend/frontend.log
+
+# IDE
+.vscode/
+.idea/
+
+# Data files (contain personal info)
+*.xlsx
+*.xls
+*.docx
+*.csv
+
+# Environment
+.env
