@@ -2,6 +2,8 @@ import { useState, useMemo, useEffect } from 'react'
 import './App.css'
 import { EditableDataGrid, type HouseholdRecord } from './components/EditableDataGrid'
 
+const API_BASE = import.meta.env.DEV ? 'http://localhost:8000' : '';
+
 interface Transaction {
   date: string;
   category: string;
@@ -41,7 +43,7 @@ function App() {
 
   // Load household data (depends on selectedMonth)
   useEffect(() => {
-    let url = 'http://localhost:8000/api/households';
+    let url = `${API_BASE}/api/households`;
     if (selectedMonth) {
       url += `?month=${selectedMonth}`;
     }
@@ -74,7 +76,7 @@ function App() {
 
     // Also load transactions for this month
     if (selectedMonth) {
-      fetch(`http://localhost:8000/api/transactions?month=${selectedMonth}`)
+      fetch(`${API_BASE}/api/transactions?month=${selectedMonth}`)
         .then(res => res.json())
         .then(result => {
           if (result.data) {
@@ -103,7 +105,7 @@ function App() {
     }
 
     try {
-      const response = await fetch('http://localhost:8000/api/upload', {
+      const response = await fetch(`${API_BASE}/api/upload`, {
         method: 'POST',
         body: formData,
       });
@@ -133,7 +135,7 @@ function App() {
   };
 
   const handleSaveRow = async (record: HouseholdRecord) => {
-    const res = await fetch(`http://localhost:8000/api/households/${record.id}`, {
+    const res = await fetch(`${API_BASE}/api/households/${record.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -169,7 +171,7 @@ function App() {
     }
 
     // Trigger silent refresh from backend so frontend exactly mimics DB calculated status / arrears
-    let url = 'http://localhost:8000/api/households';
+    let url = `${API_BASE}/api/households`;
     if (selectedMonth) {
       url += `?month=${selectedMonth}`;
     }
@@ -201,7 +203,7 @@ function App() {
     setLoading(true);
     setShowResetConfirm(false);
     try {
-      const response = await fetch('http://localhost:8000/api/reset_db', { method: 'POST' });
+      const response = await fetch(`${API_BASE}/api/reset_db`, { method: 'POST' });
       if (!response.ok) throw new Error("Failed to reset database");
 
       // Reload page to start fresh

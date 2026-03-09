@@ -1,13 +1,15 @@
 from fastapi import FastAPI, UploadFile, File, Depends, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 import os
+from pathlib import Path
 import datetime
 from database import SessionLocal, engine, Base
 import models
 import schemas
 import shutil
-import os
 from clean_bank_tx import process_bank_transactions
 from finance_analyzer import reconcile_finances, get_db_households, recalculate_arrears_forward
 from seed_db import seed_database
@@ -237,3 +239,17 @@ def reset_db(db: Session = Depends(get_db)):
         return {"message": "Database reset and seeded successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# Serve frontend static files in production
+FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend" / "dist"
+if FRONTEND_DIR.exists():
+    app.mount("/assets", StaticFiles(directory=str(FRONTEND_DIR / "assets")), name="assets")
+    
+    @app.get("/{full_path:path}")
+    async def serve_frontend(full_path: str):
+        # Try to serve the exact file first
+        file_path = FRONTEND_DIR / full_path
+        if file_path.is_file():
+            return FileResponse(str(file_path))
+        # Fallback to index.html for SPA routing
+        return FileResponse(str(FRONTEND_DIR / "index.html"))
