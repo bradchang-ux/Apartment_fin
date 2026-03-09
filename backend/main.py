@@ -266,6 +266,9 @@ if FRONTEND_DIR.exists():
     
     @app.get("/{full_path:path}")
     async def serve_frontend(full_path: str):
+        # Don't intercept API routes
+        if full_path.startswith("api/"):
+            raise HTTPException(status_code=404, detail="Not found")
         # Try to serve the exact file first
         file_path = FRONTEND_DIR / full_path
         if file_path.is_file():
