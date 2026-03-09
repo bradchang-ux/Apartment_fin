@@ -14,8 +14,9 @@ from clean_bank_tx import process_bank_transactions
 from finance_analyzer import reconcile_finances, get_db_households, recalculate_arrears_forward
 from seed_db import seed_database
 
-# Ensure tables are created
+# Ensure tables are created and seed data exists
 models.Base.metadata.create_all(bind=engine)
+seed_database()  # Auto-seed on startup (skips if already seeded)
 
 app = FastAPI()
 

@@ -2,6 +2,7 @@ from database import SessionLocal, engine, Base
 from models import Unit, Resident, ParkingAsset, MonthlyBilling
 from parse_management_fee import parse_management_fee_sheet
 import os
+import json
 
 def seed_database(force=False):
     # 1. Create tables
@@ -17,13 +18,25 @@ def seed_database(force=False):
         db.close()
         return
 
-    # 3. Parse Excel
+    # 3. Parse data - try Excel first, fallback to JSON
     report_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '11501月財報資料.xlsx'))
-    print(f"Parsing {report_path}...")
-    try:
-        households = parse_management_fee_sheet(report_path)
-    except Exception as e:
-        print(f"Failed to parse excel: {e}")
+    json_path = os.path.join(os.path.dirname(__file__), 'seed_data.json')
+    
+    households = None
+    if os.path.exists(report_path):
+        print(f"Parsing Excel: {report_path}...")
+        try:
+            households = parse_management_fee_sheet(report_path)
+        except Exception as e:
+            print(f"Failed to parse excel: {e}")
+    
+    if not households and os.path.exists(json_path):
+        print(f"Loading seed data from JSON: {json_path}...")
+        with open(json_path, 'r', encoding='utf-8') as f:
+            households = json.load(f)
+    
+    if not households:
+        print("No seed data available (neither Excel nor JSON found).")
         db.close()
         return
         
