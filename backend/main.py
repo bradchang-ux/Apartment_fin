@@ -16,7 +16,12 @@ from seed_db import seed_database
 
 # Ensure tables are created and seed data exists
 models.Base.metadata.create_all(bind=engine)
-seed_database()  # Auto-seed on startup (skips if already seeded)
+try:
+    seed_database()  # Auto-seed on startup (skips if already seeded)
+except Exception as e:
+    import traceback
+    print(f"Seed failed on startup: {e}")
+    traceback.print_exc()
 
 app = FastAPI()
 
@@ -224,6 +229,19 @@ def update_household(household_id: int, update_data: schemas.HouseholdRecordUpda
 @app.get("/api/health")
 def health_check():
     return {"status": "ok"}
+
+@app.get("/api/debug")
+def debug_info(db: Session = Depends(get_db)):
+    import os
+    seed_json = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'seed_data.json')
+    return {
+        "cwd": os.getcwd(),
+        "seed_json_path": seed_json,
+        "seed_json_exists": os.path.exists(seed_json),
+        "units_count": db.query(models.Unit).count(),
+        "billings_count": db.query(models.MonthlyBilling).count(),
+        "dir_contents": os.listdir(os.path.dirname(os.path.abspath(__file__)))
+    }
 
 @app.post("/api/reset_db")
 def reset_db(db: Session = Depends(get_db)):
